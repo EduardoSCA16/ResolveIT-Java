@@ -1,18 +1,27 @@
 package br.com.resolveit.model;
 
-import br.com.resolveit.enums.Cargo;
-import br.com.resolveit.enums.Setor;
+import br.com.resolveit.enums.CargoUsuario;
+import br.com.resolveit.enums.SetorUsuario;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "usuarios")
 public class Usuario {
-    private  String nome;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String nome;
+    @Column(unique = true)
     private String email;
     private String senha;
-    private Setor setor;
-    private Cargo cargo;
+    @Enumerated(EnumType.STRING)
+    private SetorUsuario setor;
+    @Enumerated(EnumType.STRING)
+    private CargoUsuario cargo;
 
     // Constructor
     public Usuario() {}
-    public Usuario(String nome, String email, String senha, Setor setor, Cargo cargo) {
+    public Usuario(String nome, String email, String senha, SetorUsuario setor, CargoUsuario cargo) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
@@ -21,6 +30,14 @@ public class Usuario {
     }
 
     // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getNome() {
         return nome;
     }
@@ -45,19 +62,19 @@ public class Usuario {
         this.senha = senha;
     }
 
-    public Setor getSetor() {
+    public SetorUsuario getSetor() {
         return setor;
     }
 
-    public void setSetor(Setor setor) {
+    public void setSetor(SetorUsuario setor) {
         this.setor = setor;
     }
 
-    public Cargo getCargo() {
+    public CargoUsuario getCargo() {
         return cargo;
     }
 
-    public void setCargo(Cargo cargo) {
+    public void setCargo(CargoUsuario cargo) {
         this.cargo = cargo;
     }
 }

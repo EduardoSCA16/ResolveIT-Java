@@ -1,6 +1,6 @@
 package br.com.resolveit.enums;
 
-public enum Cargo {
+public enum CargoUsuario {
     TECNICO,
     SOLICITANTE
 }
