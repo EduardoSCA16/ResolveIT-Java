@@ -1,12 +1,14 @@
 package br.com.resolveit.service;
 
-import br.com.resolveit.dto.UsuarioResponse;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.repository.UsuarioRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -19,12 +21,20 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Usuario cadastrar(Usuario usuario) {
+    public void cadastrar(Usuario usuario) {
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-        return usuarioRepository.save(usuario);
+        usuarioRepository.save(usuario);
     }
 
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
+    }
+
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado."
+                ));
     }
 }

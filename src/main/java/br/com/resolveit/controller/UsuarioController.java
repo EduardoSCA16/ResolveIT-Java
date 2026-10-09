@@ -8,7 +8,6 @@ import br.com.resolveit.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -44,5 +43,18 @@ public class UsuarioController {
                         usuario.getCargo()
                 ))
                 .toList();
+    }
+
+    @GetMapping("/{id}")
+    public UsuarioResponse buscarPorId(@PathVariable("id") Long id) {
+        Usuario usuario = usuarioService.buscarPorId(id);
+
+        return new UsuarioResponse(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                usuario.getSetor(),
+                usuario.getCargo()
+        );
     }
 }
