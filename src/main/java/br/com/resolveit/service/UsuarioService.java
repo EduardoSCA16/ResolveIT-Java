@@ -1,5 +1,6 @@
 package br.com.resolveit.service;
 
+import br.com.resolveit.dto.AtualizarUsuarioRequest;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -36,5 +36,14 @@ public class UsuarioService {
                         HttpStatus.NOT_FOUND,
                         "Usuário não encontrado."
                 ));
+    }
+
+    public Usuario atualizarUsuario(Long id, AtualizarUsuarioRequest dados) {
+        Usuario usuarioExistente = buscarPorId(id);
+        usuarioExistente.setNome(dados.nome());
+        usuarioExistente.setEmail(dados.email());
+        usuarioExistente.setSetor(dados.setor());
+
+        return usuarioRepository.save(usuarioExistente);
     }
 }

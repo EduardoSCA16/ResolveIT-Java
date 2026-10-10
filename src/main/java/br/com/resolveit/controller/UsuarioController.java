@@ -1,5 +1,6 @@
 package br.com.resolveit.controller;
 
+import br.com.resolveit.dto.AtualizarUsuarioRequest;
 import br.com.resolveit.dto.CadastroUsuarioRequest;
 import br.com.resolveit.dto.UsuarioResponse;
 import br.com.resolveit.enums.CargoUsuario;
@@ -55,6 +56,20 @@ public class UsuarioController {
                 usuario.getEmail(),
                 usuario.getSetor(),
                 usuario.getCargo()
+        );
+    }
+
+    @PutMapping("/{id}")
+    public UsuarioResponse atualizarUsuario(@PathVariable("id") Long id,
+                                            @RequestBody AtualizarUsuarioRequest dados) {
+        Usuario usuarioExistente = usuarioService.atualizarUsuario(id, dados);
+
+        return new UsuarioResponse(
+                usuarioExistente.getId(),
+                usuarioExistente.getNome(),
+                usuarioExistente.getEmail(),
+                usuarioExistente.getSetor(),
+                usuarioExistente.getCargo()
         );
     }
 }
