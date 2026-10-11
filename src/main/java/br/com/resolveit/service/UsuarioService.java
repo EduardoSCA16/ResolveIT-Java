@@ -38,12 +38,17 @@ public class UsuarioService {
                 ));
     }
 
-    public Usuario atualizarUsuario(Long id, AtualizarUsuarioRequest dados) {
+    public Usuario atualizar(Long id, AtualizarUsuarioRequest dados) {
         Usuario usuarioExistente = buscarPorId(id);
         usuarioExistente.setNome(dados.nome());
         usuarioExistente.setEmail(dados.email());
         usuarioExistente.setSetor(dados.setor());
 
         return usuarioRepository.save(usuarioExistente);
+    }
+
+    public void deletar(Long id) {
+        Usuario usuario = buscarPorId(id);
+        usuarioRepository.delete(usuario);
     }
 }

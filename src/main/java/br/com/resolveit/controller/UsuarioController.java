@@ -60,9 +60,9 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public UsuarioResponse atualizarUsuario(@PathVariable("id") Long id,
+    public UsuarioResponse atualizar(@PathVariable("id") Long id,
                                             @RequestBody AtualizarUsuarioRequest dados) {
-        Usuario usuarioExistente = usuarioService.atualizarUsuario(id, dados);
+        Usuario usuarioExistente = usuarioService.atualizar(id, dados);
 
         return new UsuarioResponse(
                 usuarioExistente.getId(),
@@ -71,5 +71,10 @@ public class UsuarioController {
                 usuarioExistente.getSetor(),
                 usuarioExistente.getCargo()
         );
+    }
+
+    @DeleteMapping("/{id}")
+    public void deletar(@PathVariable("id") Long id) {
+        usuarioService.deletar(id);
     }
 }
