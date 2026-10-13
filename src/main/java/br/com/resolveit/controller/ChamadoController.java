@@ -79,18 +79,26 @@ public class ChamadoController {
         );
     }
 
-    // -------------------------------------------------------------------------------- Corrigir solicitante
     @PutMapping("/{id}")
     public ChamadoResponse atualizar(@PathVariable("id") Long id,
                                      @RequestBody AtualizarChamadoRequest dados) {
         Chamado chamadoExistente = chamadoService.atualizar(id, dados);
+        Usuario dadosUsuario = chamadoExistente.getSolicitante();
+
+        UsuarioResponse usuario = new UsuarioResponse(
+                dadosUsuario.getId(),
+                dadosUsuario.getNome(),
+                dadosUsuario.getEmail(),
+                dadosUsuario.getSetor(),
+                dadosUsuario.getCargo()
+        );
 
         return new ChamadoResponse(
                 chamadoExistente.getId(),
                 chamadoExistente.getTitulo(),
                 chamadoExistente.getDescricao(),
                 chamadoExistente.getStatus(),
-                chamadoExistente.getSolicitante()
+                usuario
         );
     }
 
