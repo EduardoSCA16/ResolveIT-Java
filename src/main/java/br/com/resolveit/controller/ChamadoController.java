@@ -3,7 +3,9 @@ package br.com.resolveit.controller;
 import br.com.resolveit.dto.AtualizarChamadoRequest;
 import br.com.resolveit.dto.ChamadoResponse;
 import br.com.resolveit.dto.CriarChamadoRequest;
+import br.com.resolveit.dto.UsuarioResponse;
 import br.com.resolveit.model.Chamado;
+import br.com.resolveit.model.Usuario;
 import br.com.resolveit.service.ChamadoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -34,29 +36,50 @@ public class ChamadoController {
     @GetMapping
     public List<ChamadoResponse> listar() {
         return chamadoService.listarTodos().stream()
-                .map(chamado -> new ChamadoResponse(
-                        chamado.getId(),
-                        chamado.getTitulo(),
-                        chamado.getDescricao(),
-                        chamado.getStatus(),
-                        chamado.getSolicitante()
-                ))
+                .map(chamado -> {
+                    Usuario usuario = chamado.getSolicitante();
+                    UsuarioResponse dadosUsuario = new UsuarioResponse(
+                            usuario.getId(),
+                            usuario.getNome(),
+                            usuario.getEmail(),
+                            usuario.getSetor(),
+                            usuario.getCargo()
+                    );
+
+                    return new ChamadoResponse(
+                            chamado.getId(),
+                            chamado.getTitulo(),
+                            chamado.getDescricao(),
+                            chamado.getStatus(),
+                            dadosUsuario
+                    );
+                })
                 .toList();
     }
 
     @GetMapping("/{id}")
     public ChamadoResponse buscarPorId(@PathVariable("id") Long id) {
         Chamado chamado = chamadoService.buscarPorId(id);
+        Usuario solicitante = chamado.getSolicitante();
+
+        UsuarioResponse dadosUsuario = new UsuarioResponse(
+                solicitante.getId(),
+                solicitante.getNome(),
+                solicitante.getEmail(),
+                solicitante.getSetor(),
+                solicitante.getCargo()
+        );
 
         return new ChamadoResponse(
                 chamado.getId(),
                 chamado.getTitulo(),
                 chamado.getDescricao(),
                 chamado.getStatus(),
-                chamado.getSolicitante()
+                dadosUsuario
         );
     }
 
+    // -------------------------------------------------------------------------------- Corrigir solicitante
     @PutMapping("/{id}")
     public ChamadoResponse atualizar(@PathVariable("id") Long id,
                                      @RequestBody AtualizarChamadoRequest dados) {
