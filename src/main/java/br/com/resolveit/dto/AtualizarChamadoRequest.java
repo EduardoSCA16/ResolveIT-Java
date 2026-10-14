@@ -6,5 +6,5 @@ import br.com.resolveit.model.Usuario;
 public record AtualizarChamadoRequest(String titulo,
                                       String descricao,
                                       StatusChamado status,
-                                      Usuario usuario) {
+                                      Long usuarioId) {
 }

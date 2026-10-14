@@ -7,5 +7,5 @@ public record ChamadoResponse(Long id,
                               String titulo,
                               String descricao,
                               StatusChamado status,
-                              UsuarioResponse usuario) {
+                              Long usuarioId) {
 }

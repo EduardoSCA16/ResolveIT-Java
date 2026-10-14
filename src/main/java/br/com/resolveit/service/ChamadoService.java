@@ -13,9 +13,11 @@ import java.util.List;
 @Service
 public class ChamadoService {
     private final ChamadoRepository chamadoRepository;
+    private final UsuarioService usuarioService;
 
-    public ChamadoService(ChamadoRepository chamadoRepository) {
+    public ChamadoService(ChamadoRepository chamadoRepository, UsuarioService usuarioService) {
         this.chamadoRepository = chamadoRepository;
+        this.usuarioService = usuarioService;
     }
 
     public void criar(Chamado chamado) {
@@ -39,7 +41,7 @@ public class ChamadoService {
         chamadoExistente.setTitulo(dados.titulo());
         chamadoExistente.setDescricao(dados.descricao());
         chamadoExistente.setStatus(dados.status());
-        chamadoExistente.setSolicitante(dados.usuario());
+        chamadoExistente.setSolicitante(usuarioService.buscarPorId(dados.usuarioId()));
 
         return chamadoRepository.save(chamadoExistente);
     }
