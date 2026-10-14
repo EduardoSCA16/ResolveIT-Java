@@ -8,6 +8,7 @@ import br.com.resolveit.model.Chamado;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.service.ChamadoService;
 import br.com.resolveit.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class ChamadoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void criar(@RequestBody CriarChamadoRequest dados) {
+    public void criar(@Valid @RequestBody CriarChamadoRequest dados) {
         Usuario solicitante = usuarioService.buscarPorId(dados.usuarioId());
         Chamado chamado = new Chamado(
                 dados.titulo(),
@@ -55,7 +56,7 @@ public class ChamadoController {
                             chamado.getTitulo(),
                             chamado.getDescricao(),
                             chamado.getStatus(),
-                            dadosUsuario.id()
+                            dadosUsuario
                     );
                 })
                 .toList();

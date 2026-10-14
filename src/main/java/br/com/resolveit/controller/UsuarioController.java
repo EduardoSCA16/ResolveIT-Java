@@ -6,6 +6,7 @@ import br.com.resolveit.dto.UsuarioResponse;
 import br.com.resolveit.enums.CargoUsuario;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class UsuarioController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void cadastrar(@RequestBody CadastroUsuarioRequest dados) {
+    public void cadastrar(@Valid @RequestBody CadastroUsuarioRequest dados) {
         Usuario usuario = new Usuario(
                 dados.nome(),
                 dados.email(),
