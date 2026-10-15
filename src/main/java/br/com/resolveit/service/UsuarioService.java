@@ -2,6 +2,7 @@ package br.com.resolveit.service;
 
 import br.com.resolveit.dto.AtualizarUsuarioRequest;
 import br.com.resolveit.model.Usuario;
+import br.com.resolveit.repository.ChamadoRepository;
 import br.com.resolveit.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,14 +15,24 @@ import java.util.List;
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ChamadoRepository chamadoRepository;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          ChamadoRepository chamadoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.chamadoRepository = chamadoRepository;
     }
 
     public void cadastrar(Usuario usuario) {
+        boolean emailCadastrado = usuarioRepository.existsByEmail(usuario.getEmail());
+        if(emailCadastrado) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Email já cadastrado!"
+            );
+        }
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         usuarioRepository.save(usuario);
     }
@@ -49,6 +60,12 @@ public class UsuarioService {
 
     public void deletar(Long id) {
         Usuario usuario = buscarPorId(id);
+        if(chamadoRepository.existsBySolicitante_Id(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível excluir um usuário que possui chamados!"
+            );
+        }
         usuarioRepository.delete(usuario);
     }
 }

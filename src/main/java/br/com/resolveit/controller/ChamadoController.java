@@ -18,24 +18,15 @@ import java.util.List;
 @RequestMapping("/chamados")
 public class ChamadoController {
     private final ChamadoService chamadoService;
-    private final UsuarioService usuarioService;
 
-    public ChamadoController(ChamadoService chamadoService, UsuarioService usuarioService) {
+    public ChamadoController(ChamadoService chamadoService) {
         this.chamadoService = chamadoService;
-        this.usuarioService = usuarioService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public void criar(@Valid @RequestBody CriarChamadoRequest dados) {
-        Usuario solicitante = usuarioService.buscarPorId(dados.usuarioId());
-        Chamado chamado = new Chamado(
-                dados.titulo(),
-                dados.descricao(),
-                dados.status(),
-                solicitante
-        );
-        chamadoService.criar(chamado);
+        chamadoService.criar(dados);
     }
 
     @GetMapping

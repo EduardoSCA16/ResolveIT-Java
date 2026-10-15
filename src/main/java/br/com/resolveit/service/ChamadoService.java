@@ -2,7 +2,9 @@ package br.com.resolveit.service;
 
 import br.com.resolveit.dto.AtualizarChamadoRequest;
 import br.com.resolveit.dto.ChamadoResponse;
+import br.com.resolveit.dto.CriarChamadoRequest;
 import br.com.resolveit.model.Chamado;
+import br.com.resolveit.model.Usuario;
 import br.com.resolveit.repository.ChamadoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,14 @@ public class ChamadoService {
         this.usuarioService = usuarioService;
     }
 
-    public void criar(Chamado chamado) {
+    public void criar(CriarChamadoRequest dados) {
+        Usuario solicitante = usuarioService.buscarPorId(dados.usuarioId());
+        Chamado chamado = new Chamado(
+                dados.titulo(),
+                dados.descricao(),
+                dados.status(),
+                solicitante
+        );
         chamadoRepository.save(chamado);
     }
 
