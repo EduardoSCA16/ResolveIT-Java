@@ -86,7 +86,7 @@ public class ChamadoController {
 
     @PutMapping("/{id}")
     public ChamadoResponse atualizar(@PathVariable("id") Long id,
-                                     @RequestBody AtualizarChamadoRequest dados) {
+                                     @Valid @RequestBody AtualizarChamadoRequest dados) {
         Chamado chamadoExistente = chamadoService.atualizar(id, dados);
         Usuario dadosUsuario = chamadoExistente.getSolicitante();
 
