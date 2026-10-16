@@ -51,6 +51,12 @@ public class UsuarioService {
 
     public Usuario atualizar(Long id, AtualizarUsuarioRequest dados) {
         Usuario usuarioExistente = buscarPorId(id);
+        if(usuarioRepository.existsByEmailAndIdNot(dados.email(), id)){
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Este email já está sendo usado!"
+            );
+        }
         usuarioExistente.setNome(dados.nome());
         usuarioExistente.setEmail(dados.email());
         usuarioExistente.setSetor(dados.setor());

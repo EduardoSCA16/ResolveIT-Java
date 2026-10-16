@@ -9,8 +9,6 @@ import jakarta.validation.constraints.Positive;
 public record CriarChamadoRequest(@NotBlank(message = "Informe o título.")
                                   String titulo,
                                   String descricao,
-                                  @NotNull(message = "Informe o status.")
-                                  StatusChamado status,
                                   @Positive @NotNull(message = "Informe o usuário.")
                                   Long usuarioId) {
 }

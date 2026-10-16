@@ -3,6 +3,7 @@ package br.com.resolveit.service;
 import br.com.resolveit.dto.AtualizarChamadoRequest;
 import br.com.resolveit.dto.ChamadoResponse;
 import br.com.resolveit.dto.CriarChamadoRequest;
+import br.com.resolveit.enums.StatusChamado;
 import br.com.resolveit.model.Chamado;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.repository.ChamadoRepository;
@@ -27,7 +28,7 @@ public class ChamadoService {
         Chamado chamado = new Chamado(
                 dados.titulo(),
                 dados.descricao(),
-                dados.status(),
+                StatusChamado.ABERTO,
                 solicitante
         );
         chamadoRepository.save(chamado);
@@ -47,11 +48,19 @@ public class ChamadoService {
 
     public Chamado atualizar(Long id, AtualizarChamadoRequest dados) {
         Chamado chamadoExistente = buscarPorId(id);
+        StatusChamado statusChamado = chamadoExistente.getStatus();
+        StatusChamado novoStatus = dados.status();
+
+        if(!statusChamado.podeMudarPara(novoStatus)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Mudança de Status não permitida."
+            );
+        }
+
         chamadoExistente.setTitulo(dados.titulo());
         chamadoExistente.setDescricao(dados.descricao());
         chamadoExistente.setStatus(dados.status());
-        chamadoExistente.setSolicitante(usuarioService.buscarPorId(dados.usuarioId()));
-
         return chamadoRepository.save(chamadoExistente);
     }
 

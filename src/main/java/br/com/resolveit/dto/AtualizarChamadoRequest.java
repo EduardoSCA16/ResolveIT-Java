@@ -10,7 +10,5 @@ public record AtualizarChamadoRequest(@NotBlank(message = "Informe o título.")
                                       String titulo,
                                       String descricao,
                                       @NotNull(message = "Informe o status.")
-                                      StatusChamado status,
-                                      @Positive @NotNull(message = "Informe o ID.")
-                                      Long usuarioId) {
+                                      StatusChamado status) {
 }
