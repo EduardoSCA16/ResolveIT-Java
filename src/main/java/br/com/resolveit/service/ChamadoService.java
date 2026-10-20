@@ -76,6 +76,10 @@ public class ChamadoService {
     }
 
     public List<Chamado> buscarPorStatus(StatusChamado status) {
+        if(status == null) {
+            return chamadoRepository.findAll();
+        }
+
         return chamadoRepository.findByStatus(status);
     }
 }

@@ -31,24 +31,23 @@ public class ChamadoController {
     }
 
     @GetMapping
-    public List<ChamadoResponse> listar() {
-        return chamadoService.listarTodos().stream()
-                .map(chamado -> {
-                    Usuario usuario = chamado.getSolicitante();
-                    UsuarioResponse dadosUsuario = new UsuarioResponse(
-                            usuario.getId(),
-                            usuario.getNome(),
-                            usuario.getEmail(),
-                            usuario.getSetor(),
-                            usuario.getCargo()
+    public List<ChamadoResponse> listar(@RequestParam(value = "status", required = false) StatusChamado status) {
+        return chamadoService.buscarPorStatus(status).stream()
+                .map(dados -> {
+                    UsuarioResponse usuario = new UsuarioResponse(
+                            dados.getSolicitante().getId(),
+                            dados.getSolicitante().getNome(),
+                            dados.getSolicitante().getEmail(),
+                            dados.getSolicitante().getSetor(),
+                            dados.getSolicitante().getCargo()
                     );
 
                     return new ChamadoResponse(
-                            chamado.getId(),
-                            chamado.getTitulo(),
-                            chamado.getDescricao(),
-                            chamado.getStatus(),
-                            dadosUsuario
+                            dados.getId(),
+                            dados.getTitulo(),
+                            dados.getDescricao(),
+                            dados.getStatus(),
+                            usuario
                     );
                 })
                 .toList();
@@ -102,18 +101,5 @@ public class ChamadoController {
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable("id") Long id) {
         chamadoService.deletar(id);
-    }
-
-    @GetMapping
-    public List<ChamadoResponse> buscarPorStatus(@RequestParam(value = "status", required = false) StatusChamado status) {
-        return chamadoService.buscarPorStatus(status).stream()
-                .map(dados -> new ChamadoResponse(
-                        dados.getId(),
-                        dados.getTitulo(),
-                        dados.getDescricao(),
-                        dados.getStatus(),
-                        dados.getSolicitante()
-                ))
-                .toList();
     }
 }
