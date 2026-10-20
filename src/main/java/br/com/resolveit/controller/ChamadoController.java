@@ -4,6 +4,7 @@ import br.com.resolveit.dto.AtualizarChamadoRequest;
 import br.com.resolveit.dto.ChamadoResponse;
 import br.com.resolveit.dto.CriarChamadoRequest;
 import br.com.resolveit.dto.UsuarioResponse;
+import br.com.resolveit.enums.StatusChamado;
 import br.com.resolveit.model.Chamado;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.service.ChamadoService;
@@ -101,5 +102,18 @@ public class ChamadoController {
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable("id") Long id) {
         chamadoService.deletar(id);
+    }
+
+    @GetMapping
+    public List<ChamadoResponse> buscarPorStatus(@RequestParam(value = "status", required = false) StatusChamado status) {
+        return chamadoService.buscarPorStatus(status).stream()
+                .map(dados -> new ChamadoResponse(
+                        dados.getId(),
+                        dados.getTitulo(),
+                        dados.getDescricao(),
+                        dados.getStatus(),
+                        dados.getSolicitante()
+                ))
+                .toList();
     }
 }

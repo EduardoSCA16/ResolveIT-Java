@@ -51,6 +51,12 @@ public class ChamadoService {
         StatusChamado statusChamado = chamadoExistente.getStatus();
         StatusChamado novoStatus = dados.status();
 
+        if(statusChamado == StatusChamado.FECHADO) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Chamado já está fechado."
+            );
+        }
         if(!statusChamado.podeMudarPara(novoStatus)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
@@ -67,5 +73,9 @@ public class ChamadoService {
     public void deletar(Long id) {
         Chamado chamado = buscarPorId(id);
         chamadoRepository.delete(chamado);
+    }
+
+    public List<Chamado> buscarPorStatus(StatusChamado status) {
+        return chamadoRepository.findByStatus(status);
     }
 }
