@@ -1,17 +1,16 @@
 package br.com.resolveit.service;
 
 import br.com.resolveit.dto.AtualizarChamadoRequest;
-import br.com.resolveit.dto.ChamadoResponse;
 import br.com.resolveit.dto.CriarChamadoRequest;
 import br.com.resolveit.enums.StatusChamado;
 import br.com.resolveit.model.Chamado;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.repository.ChamadoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 public class ChamadoService {
@@ -34,20 +33,20 @@ public class ChamadoService {
         chamadoRepository.save(chamado);
     }
 
-    public List<Chamado> listar(StatusChamado status, Long solicitanteId) {
+    public Page<Chamado> listar(StatusChamado status, Long solicitanteId, Pageable pageable) {
         if(status != null && solicitanteId != null) {
-            return chamadoRepository.findByStatusAndSolicitanteId(status, solicitanteId);
+            return chamadoRepository.findByStatusAndSolicitanteId(status, solicitanteId, pageable);
         }
 
         if(status != null) {
-            return chamadoRepository.findByStatus(status);
+            return chamadoRepository.findByStatus(status, pageable);
         }
 
         if(solicitanteId != null) {
-            return chamadoRepository.findBySolicitanteId(solicitanteId);
+            return chamadoRepository.findBySolicitanteId(solicitanteId, pageable);
         }
 
-        return chamadoRepository.findAll();
+        return chamadoRepository.findAll(pageable);
     }
 
     public Chamado buscarPorId(Long id) {

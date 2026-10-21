@@ -8,12 +8,13 @@ import br.com.resolveit.enums.StatusChamado;
 import br.com.resolveit.model.Chamado;
 import br.com.resolveit.model.Usuario;
 import br.com.resolveit.service.ChamadoService;
-import br.com.resolveit.service.UsuarioService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/chamados")
@@ -31,13 +32,16 @@ public class ChamadoController {
     }
 
     @GetMapping
-    public List<ChamadoResponse> listar(
+    public PagedModel<ChamadoResponse> listar(
             @RequestParam(value = "status", required = false)
             StatusChamado status,
+
             @RequestParam(value = "solicitanteId", required = false)
-            Long solicitanteId)
-    {
-        return chamadoService.listar(status, solicitanteId).stream()
+            Long solicitanteId,
+
+            @PageableDefault(size = 10, sort = "id")
+            Pageable pageable) {
+        Page<ChamadoResponse> pagina = chamadoService.listar(status, solicitanteId, pageable)
                 .map(dados -> {
                     UsuarioResponse usuario = new UsuarioResponse(
                             dados.getSolicitante().getId(),
@@ -54,8 +58,9 @@ public class ChamadoController {
                             dados.getStatus(),
                             usuario
                     );
-                })
-                .toList();
+                });
+
+        return new PagedModel<>(pagina);
     }
 
     @GetMapping("/{id}")
