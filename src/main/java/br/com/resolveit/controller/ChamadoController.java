@@ -31,8 +31,13 @@ public class ChamadoController {
     }
 
     @GetMapping
-    public List<ChamadoResponse> listar(@RequestParam(value = "status", required = false) StatusChamado status) {
-        return chamadoService.buscarPorStatus(status).stream()
+    public List<ChamadoResponse> listar(
+            @RequestParam(value = "status", required = false)
+            StatusChamado status,
+            @RequestParam(value = "solicitanteId", required = false)
+            Long solicitanteId)
+    {
+        return chamadoService.listar(status, solicitanteId).stream()
                 .map(dados -> {
                     UsuarioResponse usuario = new UsuarioResponse(
                             dados.getSolicitante().getId(),
@@ -42,7 +47,7 @@ public class ChamadoController {
                             dados.getSolicitante().getCargo()
                     );
 
-                    return new ChamadoResponse(
+                    return  new ChamadoResponse(
                             dados.getId(),
                             dados.getTitulo(),
                             dados.getDescricao(),

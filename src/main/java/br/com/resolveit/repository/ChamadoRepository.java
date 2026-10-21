@@ -11,4 +11,8 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
     boolean existsBySolicitante_Id(Long id);
 
     List<Chamado> findByStatus(StatusChamado status);
+
+    List<Chamado> findBySolicitanteId(Long id);
+
+    List<Chamado> findByStatusAndSolicitanteId(StatusChamado status, Long id);
 }

@@ -34,7 +34,19 @@ public class ChamadoService {
         chamadoRepository.save(chamado);
     }
 
-    public List<Chamado> listarTodos() {
+    public List<Chamado> listar(StatusChamado status, Long solicitanteId) {
+        if(status != null && solicitanteId != null) {
+            return chamadoRepository.findByStatusAndSolicitanteId(status, solicitanteId);
+        }
+
+        if(status != null) {
+            return chamadoRepository.findByStatus(status);
+        }
+
+        if(solicitanteId != null) {
+            return chamadoRepository.findBySolicitanteId(solicitanteId);
+        }
+
         return chamadoRepository.findAll();
     }
 
@@ -73,13 +85,5 @@ public class ChamadoService {
     public void deletar(Long id) {
         Chamado chamado = buscarPorId(id);
         chamadoRepository.delete(chamado);
-    }
-
-    public List<Chamado> buscarPorStatus(StatusChamado status) {
-        if(status == null) {
-            return chamadoRepository.findAll();
-        }
-
-        return chamadoRepository.findByStatus(status);
     }
 }
