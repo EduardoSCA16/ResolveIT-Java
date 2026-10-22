@@ -37,6 +37,8 @@ export const SECTOR_LABELS: Record<UserSector, string> = {
 export const USER_ROLES = ['TECNICO', 'SOLICITANTE'] as const
 
 export type UserRole = (typeof USER_ROLES)[number]
+export type UserProfile = 'USUARIO' | 'ADMIN'
+export const PROFILE_LABELS: Record<UserProfile, string> = { USUARIO: 'Usuário', ADMIN: 'Administrador' }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   TECNICO: 'Técnico',
@@ -49,6 +51,7 @@ export interface User {
   email: string
   setor: UserSector
   cargo: UserRole
+  perfil: UserProfile
 }
 
 export interface Ticket {
@@ -82,7 +85,8 @@ export interface TicketFilters {
 export interface CreateTicketInput {
   titulo: string
   descricao?: string | null
-  usuarioId: number
+  usuarioId?: number
+  status?: TicketStatus
 }
 
 export interface UpdateTicketInput {
@@ -96,12 +100,14 @@ export interface CreateUserInput {
   email: string
   senha: string
   setor: UserSector
+  perfil?: UserProfile
 }
 
 export interface UpdateUserInput {
   nome: string
   email: string
   setor: UserSector
+  perfil: UserProfile
 }
 
 export interface ValidationError {

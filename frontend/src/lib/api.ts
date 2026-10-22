@@ -95,10 +95,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     const headers = new Headers(options.headers)
     headers.set('Accept', 'application/json')
-    if (options.body !== undefined) headers.set('Content-Type', 'application/json')
+    if (options.body !== undefined && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+    if (!['GET', 'HEAD', 'OPTIONS'].includes((options.method ?? 'GET').toUpperCase())) {
+      // Obtemos um token atual, inclusive depois de login/logout ou expiração da sessão.
+      const csrf = await request<{ headerName: string; token: string }>('/auth/csrf')
+      headers.set(csrf.headerName, csrf.token)
+    }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
+      credentials: 'same-origin',
       headers,
     })
     const text = await response.text()
@@ -118,7 +124,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       }
     }
 
-    if (!response.ok) throw responseError(response.status, body)
+    if (!response.ok) {
+      if (response.status === 401 && !path.startsWith('/auth/')) {
+        window.dispatchEvent(new Event('resolveit:unauthorized'))
+      }
+      throw responseError(response.status, body)
+    }
     return body as T
   } catch (error) {
     if (error instanceof ApiError || options.signal?.aborted) throw error
@@ -174,4 +185,25 @@ export function updateUser(id: number, input: UpdateUserInput): Promise<User> {
 
 export function deleteUser(id: number): Promise<void> {
   return request<void>(`/usuarios/${id}`, { method: 'DELETE' })
+}
+
+export function currentUser(signal?: AbortSignal): Promise<User> {
+  return request<User>('/auth/me', { signal })
+}
+
+export async function login(email: string, senha: string): Promise<User> {
+  await request<void>('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ email, senha }).toString(),
+  })
+  return currentUser()
+}
+
+export function register(input: Omit<CreateUserInput, 'perfil'>): Promise<void> {
+  return request<void>('/auth/cadastro', { method: 'POST', body: JSON.stringify(input) })
+}
+
+export function logout(): Promise<void> {
+  return request<void>('/auth/logout', { method: 'POST' })
 }

@@ -2,7 +2,9 @@ package br.com.resolveit.model;
 
 import br.com.resolveit.enums.CargoUsuario;
 import br.com.resolveit.enums.SetorUsuario;
+import br.com.resolveit.enums.PerfilUsuario;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "usuarios")
@@ -18,6 +20,14 @@ public class Usuario {
     private SetorUsuario setor;
     @Enumerated(EnumType.STRING)
     private CargoUsuario cargo;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @ColumnDefault("'USUARIO'")
+    private PerfilUsuario perfil = PerfilUsuario.USUARIO;
+
+    public PerfilUsuario getPerfil() { return perfil; }
+
+    public void setPerfil(PerfilUsuario perfil) { this.perfil = perfil; }
 
     // Constructor
     public Usuario() {}

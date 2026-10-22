@@ -13,6 +13,9 @@ import {
   SECTOR_LABELS,
   STATUS_LABELS,
   USER_SECTORS,
+  TICKET_STATUSES,
+  PROFILE_LABELS,
+  type UserProfile,
   type Ticket,
   type TicketStatus,
   type User,
@@ -26,17 +29,12 @@ export type DrawerState =
 type Props = {
   state: DrawerState
   users: User[]
+  currentUser: User
   onClose: () => void
   onSaved: (message: string) => void
 }
 
-const NEXT_STATUS: Partial<Record<TicketStatus, TicketStatus>> = {
-  ABERTO: 'EM_ANDAMENTO',
-  EM_ANDAMENTO: 'CONCLUIDO',
-  CONCLUIDO: 'FECHADO',
-}
-
-export default function RecordDrawer({ state, users, onClose, onSaved }: Props) {
+export default function RecordDrawer({ state, users, currentUser, onClose, onSaved }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [pending, setPending] = useState(false)
   const identity = state?.kind === 'ticket'
@@ -79,6 +77,7 @@ export default function RecordDrawer({ state, users, onClose, onSaved }: Props) 
           key={identity}
           state={state}
           users={users}
+          currentUser={currentUser}
           onClose={onClose}
           onPending={setPending}
           onSaved={(message) => {
@@ -91,9 +90,10 @@ export default function RecordDrawer({ state, users, onClose, onSaved }: Props) 
   )
 }
 
-function RecordForm({ state, users, onClose, onSaved, onPending }: {
+function RecordForm({ state, users, currentUser, onClose, onSaved, onPending }: {
   state: NonNullable<DrawerState>
   users: User[]
+  currentUser: User
   onClose: () => void
   onSaved: (message: string) => void
   onPending: (value: boolean) => void
@@ -102,15 +102,17 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
   const user = state.kind === 'user' ? state.user : undefined
   const isTicket = state.kind === 'ticket'
   const editing = Boolean(ticket || user)
-  const closed = ticket?.status === 'FECHADO'
+  const isAdmin = currentUser.perfil === 'ADMIN'
+  const readOnly = Boolean(ticket) && !isAdmin
   const [titulo, setTitulo] = useState(ticket?.titulo ?? '')
   const [descricao, setDescricao] = useState(ticket?.descricao ?? '')
   const [status, setStatus] = useState<TicketStatus>(ticket?.status ?? 'ABERTO')
-  const [usuarioId, setUsuarioId] = useState('')
+  const [usuarioId, setUsuarioId] = useState(String(currentUser.id))
   const [nome, setNome] = useState(user?.nome ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [senha, setSenha] = useState('')
   const [setor, setSetor] = useState<User['setor']>(user?.setor ?? USER_SECTORS[0])
+  const [perfil, setPerfil] = useState<UserProfile>(user?.perfil ?? 'USUARIO')
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
@@ -157,7 +159,7 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (closed || pending || confirmDelete) return
+    if (readOnly || pending || confirmDelete) return
 
     const invalid: Record<string, string> = {}
     if (isTicket) {
@@ -179,10 +181,10 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
       if (ticket) {
         void mutate(() => updateTicket(ticket.id, { ...data, status }), 'Chamado atualizado.')
       } else {
-        void mutate(() => createTicket({ ...data, usuarioId: Number(usuarioId) }), 'Chamado criado. Vamos resolver!')
+        void mutate(() => createTicket({ ...data, ...(isAdmin ? { usuarioId: Number(usuarioId), status } : {}) }), 'Chamado criado. Vamos resolver!')
       }
     } else {
-      const data = { nome: nome.trim(), email: email.trim(), setor }
+      const data = { nome: nome.trim(), email: email.trim(), setor, perfil }
       if (user) {
         void mutate(() => updateUser(user.id, data), 'Usuário atualizado.')
       } else {
@@ -192,14 +194,12 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
   }
 
   function remove() {
-    if (!confirmDelete) return
+    if (!confirmDelete || !isAdmin) return
     if (ticket) void mutate(() => deleteTicket(ticket.id), 'Chamado excluído.')
     if (user) void mutate(() => deleteUser(user.id), 'Usuário excluído.')
   }
 
-  const allowedStatuses = ticket
-    ? [ticket.status, NEXT_STATUS[ticket.status]].filter((value): value is TicketStatus => Boolean(value))
-    : []
+  const allowedStatuses = TICKET_STATUSES
   const noUsers = isTicket && !editing && users.length === 0
 
   return (
@@ -235,22 +235,23 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
               <span className={`status-badge status-${ticket?.status ?? 'ABERTO'}`}>
                 <span className="status-dot" />{STATUS_LABELS[ticket?.status ?? 'ABERTO']}
               </span>
-              <span>{ticket ? `Solicitante: ${ticket.usuario.nome}` : 'Todo novo chamado começa aberto.'}</span>
+              <span>{ticket ? `Solicitante: ${ticket.usuario.nome}` : isAdmin ? 'Defina o solicitante e o status inicial.' : `Solicitante: ${currentUser.nome} · Começa aberto.`}</span>
             </div>
-            {closed && <p className="form-notice">Este chamado foi encerrado. Seus dados estão disponíveis para consulta.</p>}
+            {readOnly && <p className="form-notice">Você pode acompanhar este chamado. Alterações são feitas pela equipe administradora.</p>}
             <Field id="record-title" label="Título" error={fieldErrors.titulo}>
-              <input id="record-title" value={titulo} onChange={(event) => setTitulo(event.target.value)} placeholder="Ex.: não consigo acessar o sistema" required readOnly={closed} disabled={pending} aria-invalid={Boolean(fieldErrors.titulo)} aria-describedby={fieldErrors.titulo ? 'record-title-error' : undefined} />
+              <input id="record-title" value={titulo} onChange={(event) => setTitulo(event.target.value)} placeholder="Ex.: não consigo acessar o sistema" required readOnly={readOnly} disabled={pending} aria-invalid={Boolean(fieldErrors.titulo)} aria-describedby={fieldErrors.titulo ? 'record-title-error' : undefined} />
             </Field>
             <Field id="record-description" label="Descrição" hint="Opcional. Inclua detalhes que ajudem no atendimento." error={fieldErrors.descricao}>
-              <textarea id="record-description" value={descricao} onChange={(event) => setDescricao(event.target.value)} placeholder="O que aconteceu? Quando começou?" rows={5} readOnly={closed} disabled={pending} aria-invalid={Boolean(fieldErrors.descricao)} aria-describedby={fieldErrors.descricao ? 'record-description-error' : 'record-description-hint'} />
+              <textarea id="record-description" value={descricao} onChange={(event) => setDescricao(event.target.value)} placeholder="O que aconteceu? Quando começou?" rows={5} readOnly={readOnly} disabled={pending} aria-invalid={Boolean(fieldErrors.descricao)} aria-describedby={fieldErrors.descricao ? 'record-description-error' : 'record-description-hint'} />
             </Field>
-            {ticket ? (
-              <Field id="record-status" label="Status do atendimento" hint={closed ? 'Chamados fechados não podem ser alterados.' : 'Avance uma etapa ou mantenha o status atual.'} error={fieldErrors.status}>
-                <select id="record-status" value={status} onChange={(event) => setStatus(event.target.value as TicketStatus)} disabled={closed || pending} aria-describedby={fieldErrors.status ? 'record-status-error' : 'record-status-hint'}>
+            {(ticket || isAdmin) && (
+              <Field id="record-status" label="Status do atendimento" hint={readOnly ? 'A equipe administradora atualiza o atendimento.' : 'Escolha qualquer status. Você também pode reabrir um chamado.'} error={fieldErrors.status}>
+                <select id="record-status" value={status} onChange={(event) => setStatus(event.target.value as TicketStatus)} disabled={readOnly || pending} aria-describedby={fieldErrors.status ? 'record-status-error' : 'record-status-hint'}>
                   {allowedStatuses.map((value) => <option key={value} value={value}>{STATUS_LABELS[value]}</option>)}
                 </select>
               </Field>
-            ) : (
+            )}
+            {!ticket && isAdmin && (
               <Field id="record-requester" label="Solicitante" error={fieldErrors.usuarioId}>
                 <select id="record-requester" value={usuarioId} onChange={(event) => setUsuarioId(event.target.value)} required disabled={pending || noUsers} aria-invalid={Boolean(fieldErrors.usuarioId)} aria-describedby={fieldErrors.usuarioId ? 'record-requester-error' : undefined}>
                   <option value="">Selecione uma pessoa</option>
@@ -262,7 +263,7 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
           </>
         ) : (
           <>
-            {user && <div className="drawer-state-line"><span className="person-avatar">{user.nome.slice(0, 1).toUpperCase()}</span><span>Usuário #{user.id} · {user.cargo === 'TECNICO' ? 'Técnico' : 'Solicitante'}</span></div>}
+            {user && <div className="drawer-state-line"><span className="person-avatar">{user.nome.slice(0, 1).toUpperCase()}</span><span>Usuário #{user.id} · {PROFILE_LABELS[user.perfil]}</span></div>}
             <Field id="record-name" label="Nome completo" error={fieldErrors.nome}>
               <input id="record-name" autoComplete="name" value={nome} onChange={(event) => setNome(event.target.value)} placeholder="Como a pessoa se chama?" required disabled={pending} aria-invalid={Boolean(fieldErrors.nome)} aria-describedby={fieldErrors.nome ? 'record-name-error' : undefined} />
             </Field>
@@ -275,15 +276,19 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
               </select>
             </Field>
             {!editing && (
-              <Field id="record-password" label="Senha" hint="Usada para o cadastro. Ela não será exibida nas consultas." error={fieldErrors.senha}>
-                <input id="record-password" type="password" autoComplete="new-password" value={senha} onChange={(event) => setSenha(event.target.value)} required minLength={1} disabled={pending} aria-invalid={Boolean(fieldErrors.senha)} aria-describedby={fieldErrors.senha ? 'record-password-error' : 'record-password-hint'} />
+              <Field id="record-password" label="Senha" hint="Use de 8 a 64 caracteres. A senha não aparece nas consultas." error={fieldErrors.senha}>
+                <input id="record-password" type="password" autoComplete="new-password" value={senha} onChange={(event) => setSenha(event.target.value)} required minLength={8} maxLength={64} disabled={pending} aria-invalid={Boolean(fieldErrors.senha)} aria-describedby={fieldErrors.senha ? 'record-password-error' : 'record-password-hint'} />
               </Field>
             )}
-            {!editing && <p className="form-notice">Novos usuários são cadastrados como solicitantes.</p>}
+            <Field id="record-profile" label="Perfil de acesso" hint={user?.id === currentUser.id ? 'Você não pode remover seu próprio acesso de administrador.' : 'Administradores gerenciam todos os chamados e pessoas.'} error={fieldErrors.perfil}>
+              <select id="record-profile" value={perfil} onChange={(event) => setPerfil(event.target.value as UserProfile)} disabled={pending || user?.id === currentUser.id}>
+                <option value="USUARIO">Usuário</option><option value="ADMIN">Administrador</option>
+              </select>
+            </Field>
           </>
         )}
 
-        {editing && (
+        {editing && isAdmin && user?.id !== currentUser.id && (
           <section className="drawer-danger" aria-label="Excluir registro">
             {confirmDelete ? (
               <div className="delete-confirmation">
@@ -304,8 +309,8 @@ function RecordForm({ state, users, onClose, onSaved, onPending }: {
       </div>
 
       <footer className="drawer-footer">
-        <button className="button button-ghost" type="button" onClick={onClose} disabled={pending}>{closed ? 'Fechar' : 'Cancelar'}</button>
-        {!closed && !confirmDelete && <button className="button button-primary" type="submit" disabled={pending || noUsers}>
+        <button className="button button-ghost" type="button" onClick={onClose} disabled={pending}>{readOnly ? 'Fechar' : 'Cancelar'}</button>
+        {!readOnly && !confirmDelete && <button className="button button-primary" type="submit" disabled={pending || noUsers}>
           {pending ? <LoaderCircle size={17} className="spin" aria-hidden="true" /> : editing ? <Check size={17} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}
           {pending ? 'Salvando…' : editing ? 'Salvar alterações' : isTicket ? 'Criar chamado' : 'Cadastrar usuário'}
         </button>}
